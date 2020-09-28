@@ -1,62 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
-const TooManyMatches = () => {
-  return <p>Too many matches, specify another filter</p>;
-};
-
-const ListView = ({ countriesToShow, onClick }) => {
-  return (
-    <ul>
-      {countriesToShow.map((x) => (
-        <li key={x.name}>
-          {x.name}
-          <button id={x.name} onClick={onClick}>show</button>
-        </li>
-      ))}
-    </ul>
-  );
-};
-
-const CountryDetail = ({ countriesToShow }) => {
-  return (
-    <>
-      {countriesToShow.map((x) => (
-        <div key={x.name}>
-          <h1>{x.name}</h1>
-          <p>capital {x.capital}</p>
-          <p>population {x.population}</p>
-          <h3>Languages</h3>
-          <ul>
-            {x.languages.map((y) => (
-              <li key={y.name}>{y.name}</li>
-            ))}
-          </ul>
-          <img src={x.flag} width="300px" alt="country flag" />
-        </div>
-      ))}
-    </>
-  );
-};
-
-const Display = ({ countriesToShow, onClick }) => {
-  return (
-    <div>
-      {countriesToShow.length > 10 ? (
-        <TooManyMatches />
-      ) : countriesToShow.length > 1 ? (
-        <ListView countriesToShow={countriesToShow} onClick={onClick} />
-      ) : (
-        <CountryDetail countriesToShow={countriesToShow} />
-      )}
-    </div>
-  );
-};
+import Display from "./components/Display";
 
 const App = () => {
   const [countriesAll, setCountriesAll] = useState([]);
   const [searchInput, setSearchInput] = useState("");
-  const [filter, setFilter] = useState(false);
+  const [countriesFiltered, setCountriesFiltered] = useState([]);
+  const [country, setCountry] = useState("");
+  const [capital, setCapital] = useState("");
+  const [weatherData, setWeatherData] = useState([]);
+  const api_key = process.env.REACT_APP_API_KEY
 
   useEffect(() => {
     console.log("effect");
@@ -68,20 +21,53 @@ const App = () => {
 
   const handleSearch = (event) => {
     setSearchInput(event.target.value);
-    event.target.value.length !== 0 ? setFilter(true) : setFilter(false);
   };
 
-  const countriesToShow = !filter
-    ? countriesAll
-    : countriesAll.filter((x) =>
-        x.name.toUpperCase().includes(searchInput.toUpperCase())
+  useEffect(() => {
+    if (searchInput !== "") {
+      setCountriesFiltered(
+        countriesAll.filter((x) =>
+          x.name.toUpperCase().includes(searchInput.toUpperCase())
+        )
       );
+    }
+  }, [searchInput, countriesAll]);
 
-  // console.log(countriesToShow);
+  //   console.log(countriesFiltered);
+
+  useEffect(() => {
+    if (countriesFiltered.length === 1) {
+      setCapital(countriesFiltered.map((x) => x.capital));
+      setCountry(countriesFiltered.map((x) => x.name.toLowerCase()));
+    }
+    if (countriesFiltered.length !== 1) {
+      setCapital("");
+      setCountry("");
+    }
+  }, [countriesFiltered]);
+
+  //   console.log(capital)
+  //   console.log(country);
+
+  useEffect(() => {
+    if (capital !== "") {
+      console.log("weather effect");
+      axios
+        .get(
+          `https://api.openweathermap.org/data/2.5/weather?q=${capital},${country}&appid=${api_key}`
+        )
+        .then((response) => {
+          console.log("weather promise fulfilled");
+          setWeatherData(response.data);
+        });
+    }
+  }, [capital, country, api_key]);
+
+//   console.log(weatherData);
 
   const handleClick = (e) => {
-    setSearchInput(e.target.id)
-  }
+    setSearchInput(e.target.id);
+  };
 
   return (
     <>
@@ -90,7 +76,11 @@ const App = () => {
         <input value={searchInput} onChange={handleSearch} />
       </div>
       <div>
-        <Display countriesToShow={countriesToShow} onClick={handleClick} />
+        <Display
+          countriesFiltered={countriesFiltered}
+          onClick={handleClick}
+          weatherData={weatherData}
+        />
       </div>
     </>
   );
