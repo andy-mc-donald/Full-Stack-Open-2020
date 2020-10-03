@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+// import axios from "axios";
 import Filter from "./components/Filter";
 import PersonForm from "./components/PersonForm";
 import Persons from "./components/Persons";
+import peopleService from "./services/people";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -12,10 +13,13 @@ const App = () => {
   const [showAll, setShowAll] = useState(true);
 
   useEffect(() => {
-    console.log("effect");
-    axios.get("http://localhost:3001/persons").then((response) => {
-      console.log("promise fulfilled");
-      setPersons(response.data);
+    // console.log("effect");
+    // axios
+    // .get("http://localhost:3001/persons")
+    peopleService
+    .getAll()
+    .then(allPeople => {
+      setPersons(allPeople);
     });
   }, []);
   console.log("render", persons.length, "people");
@@ -23,20 +27,37 @@ const App = () => {
   const addPerson = (event) => {
     event.preventDefault();
 
-    const add = () => {
-      const personObject = {
-        name: newName,
-        number: newNumber,
-      };
-      setPersons(persons.concat(personObject));
-    };
+    // =====THIS EARLIER VERSION OF THE CODE CHECKS IF A NAME EXISTS ALREADY
+    //=======AND EITHER ALERTS IF IT DOES OR UPDATES IF IT DOESN'T
+    // const add = () => {
+    //   const personObject = {
+    //     name: newName,
+    //     number: newNumber,
+    //   };
+    //   setPersons(persons.concat(personObject));
+    // };
 
-    persons.find((x) => x.name.toUpperCase() === newName.toUpperCase())
-      ? alert(`${newName} is already added to phonebook`)
-      : add();
+    // persons.find((x) => x.name.toUpperCase() === newName.toUpperCase())
+    //   ? alert(`${newName} is already added to phonebook`)
+    //   : add();
 
-    setNewName("");
-    setNewNumber("");
+    const personObject = {
+      name: newName,
+      number: newNumber
+    }
+
+    // axios
+    // .post("http://localhost:3001/persons", personObject)
+    peopleService
+    .create(personObject)
+    .then(returnedPerson => {
+      setPersons(persons.concat(returnedPerson));
+      setNewName("");
+      setNewNumber("");
+    })
+
+    // setNewName("");
+    // setNewNumber("");
   };
 
   const handleSearchChange = (e) => {
@@ -61,6 +82,15 @@ const App = () => {
         x.name.toUpperCase().includes(newSearch.toUpperCase())
       );
 
+  const handleDelete = (id) => {
+    const selected = persons.find(person => person.id === id);
+    if(!window.confirm(`Delete ${selected.name}?`)){
+      return;
+    }
+    peopleService.remove(id);
+    setPersons(persons.filter(person => person.id !== id));
+  }
+
   return (
     <div>
       <h2>Phonebook</h2>
@@ -76,7 +106,11 @@ const App = () => {
       />
 
       <h2>Numbers</h2>
-      <Persons personsToShow={personsToShow} />
+      <ul>
+      {personsToShow.map((person) => (
+      <Persons key={person.id} person={person} onClick={() => handleDelete(person.id)} />
+      ))}
+      </ul>
     </div>
   );
 };
