@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-// import axios from "axios";
 import Filter from "./components/Filter";
 import PersonForm from "./components/PersonForm";
 import Persons from "./components/Persons";
@@ -13,51 +12,59 @@ const App = () => {
   const [showAll, setShowAll] = useState(true);
 
   useEffect(() => {
-    // console.log("effect");
-    // axios
-    // .get("http://localhost:3001/persons")
-    peopleService
-    .getAll()
-    .then(allPeople => {
+    peopleService.getAll().then((allPeople) => {
       setPersons(allPeople);
     });
   }, []);
-  console.log("render", persons.length, "people");
+  // console.log("render", persons.length, "people");
 
   const addPerson = (event) => {
     event.preventDefault();
 
-    // =====THIS EARLIER VERSION OF THE CODE CHECKS IF A NAME EXISTS ALREADY
-    //=======AND EITHER ALERTS IF IT DOES OR UPDATES IF IT DOESN'T
-    // const add = () => {
-    //   const personObject = {
-    //     name: newName,
-    //     number: newNumber,
-    //   };
-    //   setPersons(persons.concat(personObject));
-    // };
-
-    // persons.find((x) => x.name.toUpperCase() === newName.toUpperCase())
-    //   ? alert(`${newName} is already added to phonebook`)
-    //   : add();
-
     const personObject = {
       name: newName,
-      number: newNumber
-    }
+      number: newNumber,
+    };
 
-    // axios
-    // .post("http://localhost:3001/persons", personObject)
-    peopleService
-    .create(personObject)
-    .then(returnedPerson => {
-      setPersons(persons.concat(returnedPerson));
-      setNewName("");
-      setNewNumber("");
-    })
+    const add = () => {
+      peopleService
+      .create(personObject)
+      .then((returnedPerson) => {
+        setPersons(persons.concat(returnedPerson));
+        setNewName("");
+        setNewNumber("");
+      });
+    };
 
-    // setNewName("");
-    // setNewNumber("");
+    const update = () => {
+      const duplicate = persons.find(
+        (person) => person.name.toUpperCase() === newName.toUpperCase()
+      );
+      const id = duplicate.id;
+      peopleService
+      .update(id, personObject)
+      .then((returnedPerson) => {
+        setPersons(
+          persons.map((person) => (person.id !== id ? person : returnedPerson))
+        );
+        setNewName("");
+        setNewNumber("");
+      });
+    };
+
+    const confirm = () => {
+      if (window.confirm(`${newName} is already added to phonebook, replace old number with a new one?`)){
+        update();
+      } else {
+        setNewName("");
+        setNewNumber("");
+        return;
+      }
+    };
+
+    persons.find((x) => x.name.toUpperCase() === newName.toUpperCase())
+      ? confirm()
+      : add();
   };
 
   const handleSearchChange = (e) => {
@@ -83,13 +90,13 @@ const App = () => {
       );
 
   const handleDelete = (id) => {
-    const selected = persons.find(person => person.id === id);
-    if(!window.confirm(`Delete ${selected.name}?`)){
+    const selected = persons.find((person) => person.id === id);
+    if (!window.confirm(`Delete ${selected.name}?`)) {
       return;
     }
     peopleService.remove(id);
-    setPersons(persons.filter(person => person.id !== id));
-  }
+    setPersons(persons.filter((person) => person.id !== id));
+  };
 
   return (
     <div>
@@ -107,9 +114,13 @@ const App = () => {
 
       <h2>Numbers</h2>
       <ul>
-      {personsToShow.map((person) => (
-      <Persons key={person.id} person={person} onClick={() => handleDelete(person.id)} />
-      ))}
+        {personsToShow.map((person) => (
+          <Persons
+            key={person.id}
+            person={person}
+            onClick={() => handleDelete(person.id)}
+          />
+        ))}
       </ul>
     </div>
   );
