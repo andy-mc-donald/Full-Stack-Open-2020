@@ -26,11 +26,6 @@
       "id": 10
     },
     {
-      "name": "George Washington ",
-      "number": "234980",
-      "id": 13
-    },
-    {
       "name": "The Rock",
       "number": "555781239",
       "id": 14
@@ -66,11 +61,6 @@
       "id": 25
     },
     {
-      "name": "Triple X",
-      "number": "980808008",
-      "id": 26
-    },
-    {
       "name": "Kendrick Lamar",
       "number": "808909606",
       "id": 27
@@ -84,6 +74,11 @@
       "name": "David Dobrik",
       "number": "89089080",
       "id": 29
+    },
+    {
+      "name": "Someone New",
+      "number": "8089800",
+      "id": 30
     }
   ]
 }
