@@ -97,6 +97,22 @@ test('if likes property is missing from post request it will default to 0', asyn
   expect(response.body).toHaveLength(initialBlogs.length + 1);
   expect(likes[2]).toBeDefined();
   expect(likes).toContain(0);
+})
+
+test('blog without title and url proprties cannot be added with post request', async () => {
+  const newBlog = {
+    author: "Serious Journalist",
+    likes: 5,
+  };
+
+  await api
+  .post("/api/blogs")
+  .send(newBlog)
+  .expect(400)
+
+  const response = await api.get("/api/blogs");
+
+  expect(response.body).toHaveLength(initialBlogs.length);
 
 })
 
