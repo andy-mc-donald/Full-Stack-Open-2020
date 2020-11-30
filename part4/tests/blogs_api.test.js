@@ -10,7 +10,7 @@ const initialBlogs = [
     title: "Cooking classes for dogs",
     author: "A Journo",
     url: "wwww.buzzfeed.blog",
-    likes: 0,
+    likes: 2,
   },
   {
     title: "How to buy the perfect summer swimsuit",
@@ -76,6 +76,28 @@ test('a new a new blog post can be added using HTTP POST', async () => {
   
   expect(response.body).toHaveLength(initialBlogs.length + 1);
   expect(titles).toContain('Skateboarding for the over 40s');
+})
+
+test('if likes property is missing from post request it will default to 0', async () => {
+  const newBlog = {
+    title: "Skateboarding for the over 50s",
+    author: "Skate Man 2",
+    url: "wwww.skating.blog",
+  };
+
+  await api
+  .post("/api/blogs")
+  .send(newBlog)
+  .expect(200)
+  .expect('Content-Type', /application\/json/);
+
+  const response = await api.get("/api/blogs");
+  const likes = response.body.map(r => r.likes);
+
+  expect(response.body).toHaveLength(initialBlogs.length + 1);
+  expect(likes[2]).toBeDefined();
+  expect(likes).toContain(0);
+
 })
 
 afterAll(() => {
